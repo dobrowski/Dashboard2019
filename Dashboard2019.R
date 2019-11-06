@@ -120,8 +120,34 @@ mry.DA <- all %>%
             color == "1",
            ( rtype == "D"|  charter_flag == "Y")
     ) %>%
-    select(cds, schoolname, districtname, charter_flag, studentgroup, color, year)
+    select(cds, schoolname, districtname, charter_flag, studentgroup, color, year) %>%
+    group_by(cds, studentgroup) %>%
+    mutate(DA.count = sum(color))
 
+
+#### Graphing -------
+
+graphthis <- all %>%
+    filter(str_detect(countyname, "Monterey"), 
+           year == "2019",
+           ( rtype == "D"|  charter_flag == "Y")
+           ) %>%
+    mutate(combo.name = paste0(districtname," - ",schoolname),
+           bestname = if_else(rtype =="D",districtname,schoolname))
+
+
+library(lemon)
+
+ggplot(graphthis, aes(ind, y = fct_rev(studentgroup))) + 
+    geom_tile(aes(fill = color.factor)) +
+    facet_rep_wrap(~bestname, repeat.tick.labels = TRUE) +
+    scale_fill_manual(values = pal) +
+    theme_minimal()  +
+    theme(legend.position = "none") +
+    labs(x="",
+         y="",
+         title = "Differentiated Assistance",
+         caption = capt)
 
 
 ### End -----
