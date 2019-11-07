@@ -176,5 +176,8 @@ ggsave(here("figs","DA graph for 2019.png"), width = 16, height = 16)
 
 ggsave(here("figs","DA graph for Charter 2018.png"), width = 16, height = 16)
 
+
+ggsave(here("figs","DA_Charter.png"), width = 16, height = 16)
+
 ### End -----
 
