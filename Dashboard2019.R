@@ -5,9 +5,14 @@
 
 library(tidyverse)
 library(here)
+library(lemon)  # used for the plotting so that the x-axis repeats each small multiple
+
 
 
 ### Define default variables --------
+
+# Put the data files in the 'data' folder, and then by year in subfolders
+
 
 # files <- c("cci", "chronic", "ela", "elaprate", "elpi", "grad", "math", "mathprate", "susp")
 
@@ -70,21 +75,21 @@ for(i in files){
     
     print(i)
     
+    try({
     temp <- compile(i, y)
     
     all <- bind_rows(all, temp)
-    
+    })
  #   assign(i, temp)
 }
 }
-
 
 
 all <- all %>%
     mutate(ind = factor(ind, levels = ind_ord),
        studentgroup = factor(studentgroup, levels = sg_ord),
        color.factor = factor(color)
-) %>%
+       ) %>%
     mutate(districtname = str_replace_all(districtname, "County Office of Education", "COE"),
            districtname = str_replace_all(districtname, "County Department of Education", "CDE"),
            districtname = str_replace_all(districtname, "County Superintendent of Schools", "CSOS"),
@@ -94,61 +99,82 @@ all <- all %>%
            districtname = str_replace_all(districtname, "County", "C")
     )
 
-
-
-
-year <- 2019
-ind <- "chronic"
-
-chronic <- read.delim(here("data",year, paste0( ind ,"download2019.txt")))
+# 
+# year <- 2019
+# ind <- "chronic"
+# 
+# chronic <- read.delim(here("data",year, paste0( ind ,"download2019.txt")))
 
 
 ####  Exploration --------
-
-chronic.mry <- chronic %>%
-    filter(str_detect(countyname, "Monterey"), 
-         #  color == "1",
-          ( rtype == "D"|  charter_flag == "Y")
-           )
-
-write.csv(chronic.mry, here("output","Chronic Monterey Districts in Red.csv"))
+# 
+# chronic.mry <- chronic %>%
+#     filter(str_detect(countyname, "Monterey"), 
+#          #  color == "1",
+#           ( rtype == "D"|  charter_flag == "Y")
+#            )
+# 
+# write.csv(chronic.mry, here("output","Chronic Monterey Districts in Red.csv"))
 
 
 mry.DA <- all %>%
-    filter(str_detect(countyname, "Monterey"), 
+    filter(str_detect(countyname, "Monterey"), # Change County Name as Applicable
            year == "2019",
-            color == "1",
+  #          color == "1",
            ( rtype == "D"|  charter_flag == "Y")
     ) %>%
-    select(cds, schoolname, districtname, charter_flag, studentgroup, color, year) %>%
+    select(cds, schoolname, districtname, charter_flag, studentgroup, ind, color, year) %>%
     group_by(cds, studentgroup) %>%
-    mutate(DA.count = sum(color))
+    mutate(Priority5 = if_else( (ind == "chronic" & color == 1)|(ind == "grad" & color == 1), TRUE, FALSE ),
+           Priority6 = if_else( (ind == "susp" & color == 1), TRUE, FALSE ),
+           Priority8 = if_else( (ind == "cci" & color == 1), TRUE, FALSE ),
+            Priority4math = case_when( ind == "math" & color == 1  ~ 1, 
+                                       ind == "math" & color == 2  ~ .5, 
+                                     TRUE ~ 0),
+           Priority4ela = case_when( ind == "ela" & color == 1  ~ 1, 
+                                      ind == "ela" & color == 2  ~ .5, 
+                                      TRUE ~ 0),
+           Priority4elpi = case_when( ind == "elpi" & color == 1  ~ 1.5, 
+                                      TRUE ~ 0),
+           Priority4 = if_else(Priority4ela + Priority4math + Priority4elpi > 1, TRUE, FALSE )
+           ) %>%
+    mutate(DA.count = Priority4 + Priority5 + Priority6 + Priority8   )
 
 
 #### Graphing -------
 
+
+yrs <-2018
+
 graphthis <- all %>%
     filter(str_detect(countyname, "Monterey"), 
-           year == "2019",
-           ( rtype == "D"|  charter_flag == "Y")
+           year == yrs,
+            charter_flag == "Y"
+#           ( rtype == "D"|  charter_flag == "Y")
            ) %>%
     mutate(combo.name = paste0(districtname," - ",schoolname),
            bestname = if_else(rtype =="D",districtname,schoolname))
 
 
-library(lemon)
-
 ggplot(graphthis, aes(ind, y = fct_rev(studentgroup))) + 
     geom_tile(aes(fill = color.factor)) +
-    facet_rep_wrap(~bestname, repeat.tick.labels = TRUE) +
+    lemon::facet_rep_wrap(~bestname, repeat.tick.labels = TRUE) + # If not using lemon, jsut use facet_wrap
     scale_fill_manual(values = pal) +
     theme_minimal()  +
     theme(legend.position = "none") +
     labs(x="",
          y="",
-         title = "Differentiated Assistance",
+         title = paste0("Differentiated Assistance for ", yrs),
          caption = capt)
 
+
+
+
+ggsave(here("figs","DA graph for 2019.png"), width = 16, height = 16)
+
+
+
+ggsave(here("figs","DA graph for Charter 2018.png"), width = 16, height = 16)
 
 ### End -----
 
