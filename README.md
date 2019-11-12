@@ -10,4 +10,7 @@ subfolders for each years data. They can be sourced from
 2018, and from <https://www3.cde.ca.gov/exfiles/index.aspx?pid=25> with
 the passwords from AAU for 2019.
 
+Note the Grad file did not follow the other naming conventions. It needs
+to be renamed “graddownload2019.txt”
+
 ![](figs/DA_Charter.png)

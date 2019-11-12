@@ -1,5 +1,5 @@
 
-
+#  at https://github.com/dobrowski/Dashboard2019
 
 ### Load Libaries --------
 
@@ -11,7 +11,6 @@ library(lemon)  # used for the plotting so that the x-axis repeats each small mu
 
 ### Define default variables --------
 
-# Put the data files in the 'data' folder, and then by year in subfolders
 
 
 # files <- c("cci", "chronic", "ela", "elaprate", "elpi", "grad", "math", "mathprate", "susp")
@@ -31,7 +30,7 @@ pal <- c("0" = "white",
          "5" = "blue")
 
 
-ind_ord <- c("ela","math","cci","chronic","grad","susp", "elpi")
+ind_ord <- c("ela","math", "elpi","cci","chronic","grad","susp")
 sg_ord <- c("ALL", "AA", "AI", "AS", "FI", "HI", "PI", "WH", "MR", "EL", "ELO", "EO", "SED", "SWD", "FOS", "HOM")
 
 # Caption for later that explains the student group codes
@@ -55,6 +54,8 @@ FOS = Foster Youth,
 HOM = Homeless Youth"
 
 ###  Load files ----------
+
+# Put the data files in the 'data' folder, and then by year in subfolders
 
 
 ###  Compile all the forms from the state into a single dataframe
@@ -99,27 +100,15 @@ all <- all %>%
            districtname = str_replace_all(districtname, "County", "C")
     )
 
-# 
-# year <- 2019
-# ind <- "chronic"
-# 
-# chronic <- read.delim(here("data",year, paste0( ind ,"download2019.txt")))
-
 
 ####  Exploration --------
-# 
-# chronic.mry <- chronic %>%
-#     filter(str_detect(countyname, "Monterey"), 
-#          #  color == "1",
-#           ( rtype == "D"|  charter_flag == "Y")
-#            )
-# 
-# write.csv(chronic.mry, here("output","Chronic Monterey Districts in Red.csv"))
 
+
+yrs <-2019
 
 mry.DA <- all %>%
     filter(str_detect(countyname, "Monterey"), # Change County Name as Applicable
-           year == "2018",
+           year == yrs,
   #          color == "1",
            rtype == "D" 
   #        ( rtype == "D"|  charter_flag == "Y")
@@ -137,25 +126,23 @@ mry.DA <- all %>%
                                       TRUE ~ 0),
            Prior4elpi = case_when( ind == "elpi" & color == 1  ~ 1.5, # Will need to see if this is coded as color or only "Very low" 
                                       TRUE ~ 0),
-      #     Priority4 = if_else(Priority4ela + Priority4math + Priority4elpi > 1, TRUE, FALSE )
            ) %>%
-    mutate(Priority4.count = sum(Prior4ela + Prior4math + Prior4elpi),
+    mutate(Priority4.count = sum(Prior4ela + Prior4math + Prior4elpi), # Getting right combinations for Priority 4
            Priority4 = if_else(Priority4.count > 1, TRUE, FALSE )) %>%
     mutate(Priority5 = as.logical(sum(Priority5)),
            Priority6 = as.logical(sum(Priority6)),
            Priority8 = as.logical(sum(Priority8))
            ) %>%
     select(cds, districtname ,studentgroup, Priority4 , Priority5 , Priority6 , Priority8) %>%
-    distinct() %>%
+    distinct() %>%  # simplifying
     mutate(DA.count =  Priority4 + Priority5 + Priority6 + Priority8 ) %>%
-    filter(DA.count >= 2) %>%
+    filter(DA.count >= 2) %>%  # only those eligible for DA
     arrange(districtname, studentgroup)
 
 
 #### Graphing -------
 
 
-yrs <-2018
 
 graphthis <- all %>%
     filter(str_detect(countyname, "Monterey"), 
