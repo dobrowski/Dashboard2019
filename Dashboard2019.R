@@ -87,7 +87,9 @@ for(i in files){
 
 
 all <- all %>%
-    mutate(ind = factor(ind, levels = ind_ord),
+  mutate(color = if_else(as.character( ind) == "elpi", statuslevel, color),
+         studentgroup = if_else(as.character( ind) == "elpi", "EL", as.character(studentgroup))) %>%
+mutate(ind = factor(ind, levels = ind_ord),
        studentgroup = factor(studentgroup, levels = sg_ord),
        color.factor = factor(color)
        ) %>%
@@ -98,7 +100,7 @@ all <- all %>%
            districtname = str_replace_all(districtname, "Unified", "U"),
            districtname = str_replace_all(districtname, "Elementary", "E"),
            districtname = str_replace_all(districtname, "County", "C")
-    )
+    ) 
 
 
 ####  Exploration --------
