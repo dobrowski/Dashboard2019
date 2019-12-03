@@ -100,7 +100,8 @@ mutate(ind = factor(ind, levels = ind_ord),
            districtname = str_replace_all(districtname, "Unified", "U"),
            districtname = str_replace_all(districtname, "Elementary", "E"),
            districtname = str_replace_all(districtname, "County", "C")
-    ) 
+    ) %>%
+  filter(!is.na(studentgroup))
 
 
 ####  Exploration --------
@@ -142,6 +143,8 @@ mry.DA <- all %>%
     arrange(districtname, studentgroup)
 
 
+write_csv(mry.DA, here("output", "Districts in DA and why.csv"))
+
 #### Graphing -------
 
 
@@ -150,7 +153,7 @@ graphthis <- all %>%
     filter(str_detect(countyname, "Monterey"), 
            year == yrs,
 #            charter_flag == "Y"
-           rtype == "D"
+          rtype == "D"
 #           ( rtype == "D"|  charter_flag == "Y")
            ) %>%
     mutate(combo.name = paste0(districtname," - ",schoolname),

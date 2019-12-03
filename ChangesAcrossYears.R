@@ -8,6 +8,7 @@ changes.df <- all %>%
            rtype == "D"
     ) %>% 
     select(cds, districtname, studentgroup, ind, color, year) %>%
+    na.omit() %>%
     pivot_wider(names_prefix = "color." , names_from = year, values_from = color) %>%
     filter(color.2018 != 0 & color.2019 != 0) %>%
     mutate(color.change = color.2019 - color.2018) %>%
