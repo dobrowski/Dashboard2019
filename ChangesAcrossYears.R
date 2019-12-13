@@ -1,4 +1,5 @@
 library(htmlwidgets)
+library(ggthemes)
 library(DT)
 
 #### Changes ----
@@ -18,3 +19,13 @@ changes.dt <- changes.df %>% datatable( options = list(pageLength = 20))
 
 saveWidget(widget = changes.dt, file =  "Changes in Color from Last Year.html", selfcontained = TRUE )
 
+
+ggplot(changes.df) +
+    geom_bar(aes(x = color.change)) +
+    theme_hc() +
+    labs(title = "There were an equivalent number of indicators that increased color as declined.",
+         x = "Change in Color",
+         y = "Number of indicators")
+
+
+ggsave(here("figs","Color Change.png"), width = 10, height = 6)

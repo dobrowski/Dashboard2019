@@ -17,7 +17,7 @@ library(lemon)  # used for the plotting so that the x-axis repeats each small mu
 
 files <- c( "chronic", "cci", "ela",  "grad", "math", "susp", "elpi")
 
-years <- c("2018","2019")
+years <- c("2018","2019", "2017")
 
 county <- "Monterey"
 
@@ -62,9 +62,11 @@ HOM = Homeless Youth"
 
 compile <- function(ind, yr) {
     read.delim(here("data",yr, paste0(ind ,"download",yr ,".txt"))) %>%
-        #                 filter(countyname == county) %>%
-        mutate(ind = ind,
-               year = yr)
+  #  select(-ends_with("ear")  )  #  fix this.   %>%
+  #                 filter(countyname == county) %>%
+  mutate(ind = ind,
+         year = yr,
+         reportingyear = "0")
 }
 
 all <- data_frame()
@@ -88,6 +90,7 @@ for(i in files){
 
 all <- all %>%
   mutate(color = if_else(as.character( ind) == "elpi", statuslevel, color),
+    #     color = if_else(is.na(color), 0, color),
          studentgroup = if_else(as.character( ind) == "elpi", "EL", as.character(studentgroup))) %>%
 mutate(ind = factor(ind, levels = ind_ord),
        studentgroup = factor(studentgroup, levels = sg_ord),
