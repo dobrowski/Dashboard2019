@@ -8,6 +8,8 @@ library(here)
 library(lemon)  # used for the plotting so that the x-axis repeats each small multiple
 
 
+`%notin%` <- Negate(`%in%`)
+
 
 ### Define default variables --------
 
@@ -105,6 +107,128 @@ mutate(ind = factor(ind, levels = ind_ord),
            districtname = str_replace_all(districtname, "County", "C")
     ) %>%
   filter(!is.na(studentgroup))
+
+
+
+
+
+schools <-read.delim(here("data",  "pubschls.txt"))
+narrow.schools <- schools %>% select(CDSCode,DOC:GSserved) %>%
+  mutate(cds = str_pad( as.character(CDSCode), width = 14, side = "left", pad = "0"  ) )
+
+
+
+all <- all %>%
+  mutate(cds = str_pad( as.character(cds), width = 14, side = "left", pad = "0"  ) ) %>%
+  # mutate(ind = factor(ind, levels = ind_ord),
+  #        studentgroup = factor(studentgroup, levels = sg_ord),
+  #        color.factor = factor(color)
+  # ) %>%
+  # mutate(districtname = str_replace_all(districtname, "County Office of Education", "COE"),
+  #        districtname = str_replace_all(districtname, "County Department of Education", "CDE"),
+  #        districtname = str_replace_all(districtname, "County Superintendent of Schools", "CSOS"),
+  #        districtname = str_replace_all(districtname, "Union", "U"),
+  #        districtname = str_replace_all(districtname, "Unified", "U"),
+  #        districtname = str_replace_all(districtname, "Elementary", "E"),
+  #        districtname = str_replace_all(districtname, "County", "C")
+  # ) %>%
+  left_join(narrow.schools ) %>%
+  mutate(type = as.character(type)) %>%
+  mutate(type = if_else(!is.na(type), type, case_when(EILCode == "ELEM" ~ "ES",
+                                                      EILCode == "HS" ~ "HS" ,
+                                                      EILCode == "INTMIDJR" ~ "MS", 
+                                                      EILCode == "No Data" & str_detect(DOCType, "Elementary") ~ "ED",
+                                                      EILCode == "No Data" & str_detect(DOCType, "High") ~ "HD", 
+                                                      EILCode == "No Data" & str_detect(DOCType, "Unified") ~ "UD")   )) %>%
+  mutate(cutoff = case_when(ind == "chronic" & statuslevel == 4 ~ 2.5, 
+                            ind == "chronic" & statuslevel == 3 ~ 5.0,
+                            ind == "chronic" & statuslevel == 2 ~ 10.0,
+                            ind == "chronic" & statuslevel == 1 ~ 20.0,
+                            
+                            ind == "cci" & statuslevel == 1 ~ 10.0,
+                            ind == "cci" & statuslevel == 2 ~ 35.0,
+                            ind == "cci" & statuslevel == 3 ~ 55.0,
+                            ind == "cci" & statuslevel == 4 ~ 70.0,
+                            
+                            ind == "grad" & statuslevel == 1 ~ 68.0,
+                            ind == "grad" & statuslevel == 2 ~ 80,
+                            ind == "grad" & statuslevel == 3 ~ 90.5,
+                            ind == "grad" & statuslevel == 4 ~ 95,                                  
+                            
+                            ind == "ela" & statuslevel == 1 & type %in% c("ES", "ED", "MS", "UD") ~ -70,
+                            ind == "ela" & statuslevel == 2 & type %in% c("ES", "ED", "MS", "UD") ~ -5,
+                            ind == "ela" & statuslevel == 3 & type %in% c("ES", "ED", "MS", "UD") ~ 10,
+                            ind == "ela" & statuslevel == 4 & type %in% c("ES", "ED", "MS", "UD") ~ 45,                                  
+                            
+                            ind == "ela" & statuslevel == 1 & type %in% c("HS", "HD") ~ -45,
+                            ind == "ela" & statuslevel == 2 & type %in% c("HS", "HD") ~ 0,
+                            ind == "ela" & statuslevel == 3 & type %in% c("HS", "HD") ~ 30,
+                            ind == "ela" & statuslevel == 4 & type %in% c("HS", "HD") ~ 75,                                  
+                            
+                            ind == "math" & statuslevel == 1 & type %in% c("ES", "ED", "MS", "UD") ~ -95,
+                            ind == "math" & statuslevel == 2 & type %in% c("ES", "ED", "MS", "UD") ~ -25,
+                            ind == "math" & statuslevel == 3 & type %in% c("ES", "ED", "MS", "UD") ~ 0,
+                            ind == "math" & statuslevel == 4 & type %in% c("ES", "ED", "MS", "UD") ~ 35,                                  
+                            
+                            ind == "math" & statuslevel == 1 & type %in% c("HS", "HD") ~ -115,
+                            ind == "math" & statuslevel == 2 & type %in% c("HS", "HD") ~ -60,
+                            ind == "math" & statuslevel == 3 & type %in% c("HS", "HD") ~ 0,
+                            ind == "math" & statuslevel == 4 & type %in% c("HS", "HD") ~ 25,   
+                            
+                            ind == "susp" & statuslevel == 4 & type == "ED" ~ 0.5,
+                            ind == "susp" & statuslevel == 3 & type == "ED" ~ 1.5,
+                            ind == "susp" & statuslevel == 2 & type == "ED" ~ 3.0,
+                            ind == "susp" & statuslevel == 1 & type == "ED" ~ 6.0,
+                            
+                            ind == "susp" & statuslevel == 4 & type == "HD" ~ 1.5,
+                            ind == "susp" & statuslevel == 3 & type == "HD" ~ 3.5,
+                            ind == "susp" & statuslevel == 2 & type == "HD" ~ 6.0,
+                            ind == "susp" & statuslevel == 1 & type == "HD" ~ 9.0,
+                            
+                            ind == "susp" & statuslevel == 4 & type == "UD" ~ 1.0,
+                            ind == "susp" & statuslevel == 3 & type == "UD" ~ 2.5,
+                            ind == "susp" & statuslevel == 2 & type == "UD" ~ 4.5,
+                            ind == "susp" & statuslevel == 1 & type == "UD" ~ 8.0,
+                            
+                            
+                            ind == "susp" & statuslevel == 4 & type == "ES" ~ 0.5,
+                            ind == "susp" & statuslevel == 3 & type == "ES" ~ 1.0,
+                            ind == "susp" & statuslevel == 2 & type == "ES" ~ 3.0,
+                            ind == "susp" & statuslevel == 1 & type == "ES" ~ 6.0,
+                            
+                            ind == "susp" & statuslevel == 4 & type == "MS" ~ 0.5,
+                            ind == "susp" & statuslevel == 3 & type == "MS" ~ 2.0,
+                            ind == "susp" & statuslevel == 2 & type == "MS" ~ 8.0,
+                            ind == "susp" & statuslevel == 1 & type == "MS" ~ 12.0,
+                            
+                            ind == "susp" & statuslevel == 4 & type == "HS" ~ 0.5,
+                            ind == "susp" & statuslevel == 3 & type == "HS" ~ 1.5,
+                            ind == "susp" & statuslevel == 2 & type == "HS" ~ 6.0,
+                            ind == "susp" & statuslevel == 1 & type == "HS" ~ 10.0,
+                            TRUE ~ NA_real_),
+         cutoffdiff = cutoff - currstatus,
+         increase = case_when(ind == "chronic" ~ -0.5,
+                              ind == "cci"  ~ 2.0,
+                              ind == "grad" & dass_flag != "Y" ~ 1.0 ,
+                              ind == "grad" & dass_flag == "Y" ~ 3.0 ,
+                              
+                              ind == "ela" & type %in% c("ES", "ED", "MS", "UD") ~ 3,
+                              ind == "ela" & type %in% c("HS", "HD") ~ 3,
+
+                              ind == "math" & type %in% c("ES", "ED", "MS", "UD") ~ 3,
+                              ind == "math" & type %in% c("HS", "HD") ~ 3,
+                              
+                              ind == "susp" & type == "ED" ~ -0.3,
+                              ind == "susp" & type == "HD" ~ -0.5,
+                              ind == "susp" & type == "UD" ~ -0.3,
+                              ind == "susp" & type %in% c("ES", "MS", "HS") ~ -0.3,
+                              TRUE ~ NA_real_)
+                
+  ) 
+
+
+
+
 
 
 ####  Exploration --------
