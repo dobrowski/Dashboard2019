@@ -206,8 +206,75 @@ all <- all %>%
                             ind == "susp" & statuslevel == 2 & type == "HS" ~ 6.0,
                             ind == "susp" & statuslevel == 1 & type == "HS" ~ 10.0,
                             TRUE ~ NA_real_),
+         dropoff = case_when(ind == "chronic" & statuslevel == 5 ~ 2.6, 
+                            ind == "chronic" & statuslevel == 4 ~ 5.1,
+                            ind == "chronic" & statuslevel == 3 ~ 10.1,
+                            ind == "chronic" & statuslevel == 2 ~ 20.1,
+                            
+                            ind == "cci" & statuslevel == 2 ~ 9.9,
+                            ind == "cci" & statuslevel == 3 ~ 34.9,
+                            ind == "cci" & statuslevel == 4 ~ 54.9,
+                            ind == "cci" & statuslevel == 5 ~ 69.9,
+                            
+                            ind == "grad" & statuslevel == 2 ~ 67.9,
+                            ind == "grad" & statuslevel == 3 ~ 79.9,
+                            ind == "grad" & statuslevel == 4 ~ 90.4,
+                            ind == "grad" & statuslevel == 5 ~ 94.9,                                  
+                            
+                            ind == "ela" & statuslevel == 2 & type %in% c("ES", "ED", "MS", "UD") ~ -70.1,
+                            ind == "ela" & statuslevel == 3 & type %in% c("ES", "ED", "MS", "UD") ~ -5.1,
+                            ind == "ela" & statuslevel == 4 & type %in% c("ES", "ED", "MS", "UD") ~ 9.9,
+                            ind == "ela" & statuslevel == 5 & type %in% c("ES", "ED", "MS", "UD") ~ 44.9,                                  
+                            
+                            ind == "ela" & statuslevel == 2 & type %in% c("HS", "HD") ~ -45.1,
+                            ind == "ela" & statuslevel == 3 & type %in% c("HS", "HD") ~ -0.1,
+                            ind == "ela" & statuslevel == 4 & type %in% c("HS", "HD") ~ 29.9,
+                            ind == "ela" & statuslevel == 5 & type %in% c("HS", "HD") ~ 74.9,                                  
+                            
+                            ind == "math" & statuslevel == 2 & type %in% c("ES", "ED", "MS", "UD") ~ -95.1,
+                            ind == "math" & statuslevel == 3 & type %in% c("ES", "ED", "MS", "UD") ~ -25.1,
+                            ind == "math" & statuslevel == 4 & type %in% c("ES", "ED", "MS", "UD") ~ -0.1,
+                            ind == "math" & statuslevel == 5 & type %in% c("ES", "ED", "MS", "UD") ~ 34.9,                                  
+                            
+                            ind == "math" & statuslevel == 2 & type %in% c("HS", "HD") ~ -115.1,
+                            ind == "math" & statuslevel == 3 & type %in% c("HS", "HD") ~ -60.1,
+                            ind == "math" & statuslevel == 4 & type %in% c("HS", "HD") ~ -0.1,
+                            ind == "math" & statuslevel == 5 & type %in% c("HS", "HD") ~ 24.9,   
+                            
+                            ind == "susp" & statuslevel == 5 & type == "ED" ~ 0.6,
+                            ind == "susp" & statuslevel == 4 & type == "ED" ~ 1.6,
+                            ind == "susp" & statuslevel == 3 & type == "ED" ~ 3.1,
+                            ind == "susp" & statuslevel == 2 & type == "ED" ~ 6.1,
+                            
+                            ind == "susp" & statuslevel == 5 & type == "HD" ~ 1.6,
+                            ind == "susp" & statuslevel == 4 & type == "HD" ~ 3.6,
+                            ind == "susp" & statuslevel == 3 & type == "HD" ~ 6.1,
+                            ind == "susp" & statuslevel == 2 & type == "HD" ~ 9.1,
+                            
+                            ind == "susp" & statuslevel == 5 & type == "UD" ~ 1.1,
+                            ind == "susp" & statuslevel == 4 & type == "UD" ~ 2.6,
+                            ind == "susp" & statuslevel == 3 & type == "UD" ~ 4.6,
+                            ind == "susp" & statuslevel == 2 & type == "UD" ~ 8.1,
+                            
+                            
+                            ind == "susp" & statuslevel == 5 & type == "ES" ~ 0.6,
+                            ind == "susp" & statuslevel == 4 & type == "ES" ~ 1.1,
+                            ind == "susp" & statuslevel == 3 & type == "ES" ~ 3.1,
+                            ind == "susp" & statuslevel == 2 & type == "ES" ~ 6.1,
+                            
+                            ind == "susp" & statuslevel == 5 & type == "MS" ~ 0.6,
+                            ind == "susp" & statuslevel == 4 & type == "MS" ~ 2.1,
+                            ind == "susp" & statuslevel == 3 & type == "MS" ~ 8.1,
+                            ind == "susp" & statuslevel == 2 & type == "MS" ~ 12.1,
+                            
+                            ind == "susp" & statuslevel == 5 & type == "HS" ~ 0.6,
+                            ind == "susp" & statuslevel == 4 & type == "HS" ~ 1.6,
+                            ind == "susp" & statuslevel == 3 & type == "HS" ~ 6.1,
+                            ind == "susp" & statuslevel == 2 & type == "HS" ~ 10.1,
+                            TRUE ~ NA_real_),
          cutoffdiff = cutoff - currstatus,
-         increase = case_when(ind == "chronic" ~ -0.5,
+         dropoffdiff = dropoff - currstatus,
+         improve = case_when(ind == "chronic" ~ -0.5,
                               ind == "cci"  ~ 2.0,
                               ind == "grad" & dass_flag != "Y" ~ 1.0 ,
                               ind == "grad" & dass_flag == "Y" ~ 3.0 ,
@@ -222,7 +289,41 @@ all <- all %>%
                               ind == "susp" & type == "HD" ~ -0.5,
                               ind == "susp" & type == "UD" ~ -0.3,
                               ind == "susp" & type %in% c("ES", "MS", "HS") ~ -0.3,
-                              TRUE ~ NA_real_)
+                              TRUE ~ NA_real_),
+         improve.sig = case_when(ind == "chronic" ~ -3.0,
+                              ind == "cci"  ~ 9.0,
+                              ind == "grad" & dass_flag != "Y" ~ 5.0 ,
+                              ind == "grad" & dass_flag == "Y" ~ 10.0 ,
+                              
+                              ind == "ela" & type %in% c("ES", "ED", "MS", "UD") ~ 15,
+                              ind == "ela" & type %in% c("HS", "HD") ~ 15,
+                              
+                              ind == "math" & type %in% c("ES", "ED", "MS", "UD") ~ 15,
+                              ind == "math" & type %in% c("HS", "HD") ~ 15,
+                              
+                              ind == "susp" & type == "ED" ~ -2.0,
+                              ind == "susp" & type == "HD" ~ -3.0,
+                              ind == "susp" & type == "UD" ~ -2.0,
+                              ind == "susp" & type %in% c("ES") ~ -2.0,
+                              ind == "susp" & type %in% c("MS") ~ -4.0,
+                              ind == "susp" & type %in% c("HS") ~ -3.0,
+                              TRUE ~ NA_real_),
+         worsen = case_when(ind == "chronic" ~ 0.5,
+                             ind == "cci"  ~ -2.0,
+                             ind == "grad" & dass_flag != "Y" ~ -1.0 ,
+                             ind == "grad" & dass_flag == "Y" ~ -3.0 ,
+                             
+                             ind == "ela" & type %in% c("ES", "ED", "MS", "UD") ~ -3,
+                             ind == "ela" & type %in% c("HS", "HD") ~ -3,
+                             
+                             ind == "math" & type %in% c("ES", "ED", "MS", "UD") ~ -3,
+                             ind == "math" & type %in% c("HS", "HD") ~ -3,
+                             
+                             ind == "susp" & type == "ED" ~ 0.3,
+                             ind == "susp" & type == "HD" ~ 0.5,
+                             ind == "susp" & type == "UD" ~ 0.3,
+                             ind == "susp" & type %in% c("ES", "MS", "HS") ~ 0.3,
+                             TRUE ~ NA_real_)
                 
   ) 
 
