@@ -329,7 +329,7 @@ all <- all %>%
 
 
 
-
+write_rds(all,here("output","Dashboard_all.rds"))
 
 
 ####  Exploration --------
@@ -403,6 +403,20 @@ ggplot(graphthis, aes(ind, y = fct_rev(studentgroup))) +
 
 
 ggsave(here("figs","DA graph for 2019.png"), width = 16, height = 16)
+
+
+graphthis %>% 
+filter(color > 0) %>%
+  ggplot() +
+  geom_bar(aes(color.factor, fill = color.factor)) +
+  scale_fill_manual(values = pal) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+
+ggsave(here("figs","Number of colors in Monterey County in 2019.png"), width = 8, height = 6)
+
+
 
 
 
